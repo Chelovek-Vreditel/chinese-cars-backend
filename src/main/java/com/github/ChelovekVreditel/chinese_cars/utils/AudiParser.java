@@ -165,7 +165,7 @@ public class AudiParser {
                         String raw = Objects.requireNonNull(cells.get(i).select(".value-cub > .item").first())
                                 .child(0)
                                 .text();
-                        option.setPriceCny(new BigDecimal(raw.replaceAll("[^0-9.]", "")));
+                        option.setPriceCny(new BigDecimal(raw.replaceAll("[^0-9.-]", "")));
                     }
 
                     result.get(i-1).getConfigurationOptions().add(option);

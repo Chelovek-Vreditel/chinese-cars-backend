@@ -27,7 +27,7 @@ public class AudiParserTest {
     @Test
     void extractConfigurationsDetailsTest() throws IOException {
         List<ConfigurationDetails> extractedConfigurationsDetails = audiParser.extractConfigurationsDetails(
-                "https://www.audi.cn/zh/performanceequipment.@a@a4@rs_4_avant.html?rs_4_avant"
+                "https://www.audi.cn/zh/performanceequipment.@a@a3@a3_sportback.html?a3_sportback"
         );
         for (ConfigurationDetails details : extractedConfigurationsDetails) {
             System.out.println("========== КОНФИГУРАЦИЯ ==========");

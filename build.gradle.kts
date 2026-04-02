@@ -42,7 +42,8 @@ dependencies {
     // HTML parser
     implementation("org.jsoup:jsoup:1.22.1")
     implementation("com.microsoft.playwright:playwright:1.58.0")
-    //implementation("org.seleniumhq.selenium:selenium-java:4.41.0")
+    // Cache
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
 }
 
 tasks.withType<Test> {

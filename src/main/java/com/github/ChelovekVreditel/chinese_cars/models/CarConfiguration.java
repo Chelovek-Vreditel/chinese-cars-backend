@@ -21,6 +21,5 @@ public class CarConfiguration {
 
     private Long carId;
     private String name;
-    private String originalName;
     private BigDecimal basePriceCny;
 }

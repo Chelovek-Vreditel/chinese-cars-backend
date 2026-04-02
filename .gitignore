@@ -10,3 +10,7 @@ build/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+.classpath
+.factorypath
+.project
+.settings/
