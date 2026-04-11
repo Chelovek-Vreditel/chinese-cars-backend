@@ -13,13 +13,17 @@ import com.github.ChelovekVreditel.chinese_cars.utils.Translator;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriUtils;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
+@Profile("mvp")
+@Component
 public class MyMemoryTranslatorImpl implements Translator {
 
     private RestTemplate createRestTemplate() {

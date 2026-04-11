@@ -13,6 +13,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -21,6 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+@Component
 public class AudiParser {
 
     public List<Car> extractCarsModels(
@@ -107,14 +109,14 @@ public class AudiParser {
         Elements configurationElements = Objects.requireNonNull(doc.getElementsByClass("top-table_container").first())
                 .select("td[data-key]");
         for (Element configuration : configurationElements) {
-            String originalName = configuration.select(".car-name-title").text();
+            String name = configuration.select(".car-name-title").text();
             BigDecimal basePriceCny = new BigDecimal(
                     Objects.requireNonNull(configuration.select(".price-name").first())
                             .ownText()
                             .replace(",", "")
             );
             CarConfiguration carConfiguration = CarConfiguration.builder()
-                    .originalName(originalName)
+                    .name(name)
                     .basePriceCny(basePriceCny)
                     .build();
             ConfigurationDetails configurationDetails = ConfigurationDetails.builder()

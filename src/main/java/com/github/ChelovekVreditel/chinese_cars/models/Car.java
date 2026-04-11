@@ -9,7 +9,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -27,6 +26,4 @@ public class Car {
     private BigDecimal basePriceCny;
     private String description;
     private String sourceUrl;
-    private LocalDateTime createdDt;
-    private LocalDateTime updatedAt;
 }

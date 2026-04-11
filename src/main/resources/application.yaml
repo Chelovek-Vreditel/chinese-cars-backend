@@ -8,6 +8,8 @@ spring:
     driver-class-name: org.postgresql.Driver
   profiles:
     active: mvp
+  flyway:
+    enabled: true
 
 logging:
   level:
