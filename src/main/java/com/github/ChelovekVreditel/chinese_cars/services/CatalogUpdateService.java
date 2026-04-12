@@ -73,9 +73,9 @@ public class CatalogUpdateService {
 
     @Transactional
     protected void saveCarData(Car car, List<ConfigurationDetails> configurationDetails) throws Exception {
-        carRepository.upsert(car.getBrand(), car.getSeries(), car.getModel(),
+        carRepository.upsert(car.getBrand(), car.getSeries(), car.getOriginalModel(), car.getModel(),
                                 car.getBasePriceCny(), car.getDescription(), car.getSourceUrl());
-        Long carId = carRepository.findIdByBrandAndModel(car.getBrand(), car.getModel())
+        Long carId = carRepository.findIdByBrandAndOriginalModel(car.getBrand(), car.getOriginalModel())
             .orElseThrow(() -> new Exception("Не был найден объект Car после сохранения в БД."));
         carsUpdateRepository.upsert(carId);
         List<CarConfiguration> carConfigurations = configurationDetails.stream()
@@ -88,7 +88,7 @@ public class CatalogUpdateService {
         List<Long> configurationIds = new ArrayList<>();
         List<ConfigurationOption> options = new ArrayList<>();
         for (ConfigurationDetails details : configurationDetails) {
-           Long confId = carConfigurationRepository.findIdByCarIdAndName(carId, details.getCarConfiguration().getName())
+           Long confId = carConfigurationRepository.findIdByCarIdAndOriginalName(carId, details.getCarConfiguration().getOriginalName())
                .orElseThrow(() -> new Exception("Не был найден объект CarConfiguration после сохранения в БД."));
            configurationIds.add(confId);
            for (ConfigurationOption option : details.getConfigurationOptions()) {
@@ -99,9 +99,9 @@ public class CatalogUpdateService {
         carConfigurationTimeRepository.batchUpsert(configurationIds);
         configurationOptionRepository.batchUpsert(options);
         List<SimpleEntry<Long, String>> searchingProperties = options.stream()
-            .map(o -> new AbstractMap.SimpleEntry<>(o.getConfigurationId(), o.getName()))
+            .map(o -> new AbstractMap.SimpleEntry<>(o.getConfigurationId(), o.getOriginalName()))
             .toList();
-        List<Long> optionsIds = configurationOptionRepository.findIdsByConfigurationIdAndName(searchingProperties);
+        List<Long> optionsIds = configurationOptionRepository.findIdsByConfigurationIdAndOriginalName(searchingProperties);
         if (optionsIds.isEmpty()) throw new Exception("Не были найдены объекты ConfigurationOption после сохранения в БД.");
         configurationOptionTimeRepository.batchUpsert(optionsIds);
     }

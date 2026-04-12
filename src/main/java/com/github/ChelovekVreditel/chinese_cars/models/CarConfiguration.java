@@ -20,6 +20,7 @@ public class CarConfiguration {
     private Long id;
 
     private Long carId;
+    private String originalName;
     private String name;
     private BigDecimal basePriceCny;
 }

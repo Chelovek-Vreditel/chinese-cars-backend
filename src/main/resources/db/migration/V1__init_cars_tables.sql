@@ -2,36 +2,39 @@ CREATE TABLE cars (
     id                  BIGSERIAL       PRIMARY KEY,
     brand               VARCHAR(25)     NOT NULL,
     series              VARCHAR(50),
+    original_model      VARCHAR(255)    NOT NULL,
     model               VARCHAR(255)    NOT NULL,
     base_price_cny      DECIMAL(10,2)   NOT NULL,
     description         TEXT,
     source_url          TEXT,
 
-    UNIQUE (brand, model)
+    UNIQUE (brand, original_model)
 );
 
 CREATE TABLE cars_configurations (
     id                  BIGSERIAL       PRIMARY KEY,
     car_id              BIGINT          NOT NULL,
+    original_name       VARCHAR(255)    NOT NULL,
     name                VARCHAR(255)    NOT NULL,
     base_price_cny      DECIMAL(10,2)   NOT NULL,
 
     FOREIGN KEY (car_id) REFERENCES cars(id)
     ON DELETE CASCADE ON UPDATE CASCADE,
-    UNIQUE (car_id, name)
+    UNIQUE (car_id, original_name)
 );
 
 CREATE TABLE configuration_options (
     id                  BIGSERIAL       PRIMARY KEY,
     configuration_id    BIGINT          NOT NULL,
     category            VARCHAR(255),
+    original_name       VARCHAR(255)    NOT NULL,
     name                VARCHAR(255)    NOT NULL,
     value               VARCHAR(255)    NOT NULL, -- Значение/included/is_optional/none
     price_cny           DECIMAL(10,2),
 
     FOREIGN KEY (configuration_id) REFERENCES cars_configurations(id) 
     ON DELETE CASCADE ON UPDATE CASCADE, 
-    UNIQUE (configuration_id, name)
+    UNIQUE (configuration_id, original_name)
 );
 
 CREATE TABLE cars_update_times (

@@ -18,9 +18,9 @@ public interface CarRepository extends CrudRepository<@NonNull Car, @NonNull Lon
     @Modifying
     @Transactional
     @Query("""
-        INSERT INTO cars (brand, series, model, base_price_cny, description, source_url)
-        VALUES (:brand, :series, :model, :basePriceCny, :description, :sourceUrl)
-        ON CONFLICT (brand, model) DO UPDATE SET 
+        INSERT INTO cars (brand, series, original_model, model, base_price_cny, description, source_url)
+        VALUES (:brand, :series, :originalModel, :model, :basePriceCny, :description, :sourceUrl)
+        ON CONFLICT (brand, original_model) DO UPDATE SET 
             series = EXCLUDED.series,
             base_price_cny = EXCLUDED.base_price_cny,
             description = EXCLUDED.description,
@@ -32,12 +32,13 @@ public interface CarRepository extends CrudRepository<@NonNull Car, @NonNull Lon
     """)
     public void upsert(@Param("brand") CarBrand brand,
                 @Param("series") String series,
+                @Param("originalModel") String originalModel,
                 @Param("model") String model,
                 @Param("basePriceCny") BigDecimal basePriceCny,
                 @Param("description") String description,
                 @Param("sourceUrl") String sourceUrl);
 
-    @Query("SELECT id FROM cars WHERE brand = :brand AND model = :model")
-    public Optional<Long> findIdByBrandAndModel(@Param("brand") CarBrand brand,
-                                                @Param("model") String model);
+    @Query("SELECT id FROM cars WHERE brand = :brand AND original_model = :model")
+    public Optional<Long> findIdByBrandAndOriginalModel(@Param("brand") CarBrand brand,
+                                                @Param("model") String originalModel);
 }

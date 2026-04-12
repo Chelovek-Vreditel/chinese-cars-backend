@@ -19,9 +19,9 @@ public class CarConfigurationCustomRepositoryImpl implements CarConfigurationCus
     @Override
     public void batchUpsert(List<CarConfiguration> configurations) {
         String sql = """
-            INSERT INTO cars_configurations (car_id, name, base_price_cny)
-            VALUES (:carId, :name, :basePriceCny)
-            ON CONFLICT (car_id, name) DO UPDATE SET 
+            INSERT INTO cars_configurations (car_id, original_name, name, base_price_cny)
+            VALUES (:carId, :originalName, :name, :basePriceCny)
+            ON CONFLICT (car_id, original_name) DO UPDATE SET 
                 base_price_cny = EXCLUDED.base_price_cny
             WHERE cars_configurations.base_price_cny IS DISTINCT FROM EXCLUDED.base_price_cny
         """;

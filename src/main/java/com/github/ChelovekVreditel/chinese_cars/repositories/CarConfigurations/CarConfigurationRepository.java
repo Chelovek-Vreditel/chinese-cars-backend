@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 public interface CarConfigurationRepository extends CrudRepository<@NonNull CarConfiguration, @NonNull Long>, 
                                                     CarConfigurationCustomRepository {
 
-    @Query("SELECT id FROM cars_configurations WHERE car_id = :carId AND name = :name")
-    public Optional<Long> findIdByCarIdAndName(@Param("carId") Long carId, 
-                                               @Param("name") String name);
+    @Query("SELECT id FROM cars_configurations WHERE car_id = :carId AND original_name = :name")
+    public Optional<Long> findIdByCarIdAndOriginalName(@Param("carId") Long carId, 
+                                               @Param("name") String originalName);
 }

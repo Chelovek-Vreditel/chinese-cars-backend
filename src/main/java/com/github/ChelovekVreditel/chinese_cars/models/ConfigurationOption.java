@@ -21,6 +21,7 @@ public class ConfigurationOption {
 
     private Long configurationId;
     private String category;
+    private String originalName;
     private String name;
     private String value;
     private BigDecimal priceCny;

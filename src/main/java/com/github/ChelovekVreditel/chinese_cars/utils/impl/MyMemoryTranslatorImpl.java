@@ -100,7 +100,7 @@ public class MyMemoryTranslatorImpl implements Translator {
             .map(String::strip)
             .filter(s -> !s.isEmpty())
             .ifPresent(series -> car.setSeries(cache.get(series)));
-        Optional.ofNullable(car.getModel())
+        Optional.ofNullable(car.getOriginalModel())
             .map(String::strip)
             .filter(s -> !s.isEmpty())
             .ifPresent(model -> car.setModel(cache.get(model)));
@@ -112,7 +112,7 @@ public class MyMemoryTranslatorImpl implements Translator {
 
     @Override
     public void translateCarConfiguration(CarConfiguration carConfiguration) {
-        Optional.ofNullable(carConfiguration.getName())
+        Optional.ofNullable(carConfiguration.getOriginalName())
             .map(String::strip)
             .filter(s -> !s.isEmpty())
             .ifPresent(name -> carConfiguration.setName(cache.get(name)));
@@ -124,7 +124,7 @@ public class MyMemoryTranslatorImpl implements Translator {
             .map(String::strip)
             .filter(s -> !s.isEmpty())
             .ifPresent(category -> configurationOption.setCategory(cache.get(category)));
-        Optional.ofNullable(configurationOption.getName())
+        Optional.ofNullable(configurationOption.getOriginalName())
             .map(String::strip)
             .filter(s -> !s.isEmpty())
             .ifPresent(name -> configurationOption.setName(cache.get(name)));

@@ -62,24 +62,27 @@ class CarConfigurationRepositoriesTest {
         Car car = Car.builder()
             .id((long) 1)
             .brand(CarBrand.Audi)
+            .originalModel("全新奥迪 A6L")
             .model("Comfort A")
             .basePriceCny(new BigDecimal("1200.00"))
             .build();
         jdbcTemplate.update("""
-            INSERT INTO cars (id, brand, series, model, base_price_cny, description, source_url) VALUES (?,?,?,?,?,?,?)
+            INSERT INTO cars (id, brand, series, original_model, model, base_price_cny, description, source_url) VALUES (?,?,?,?,?,?,?,?)
             """,
-            car.getId(), car.getBrand().name(), car.getSeries(), car.getModel(), car.getBasePriceCny(),
-            car.getDescription(), car.getSourceUrl()
+            car.getId(), car.getBrand().name(), car.getSeries(), car.getOriginalModel(), car.getModel(),
+            car.getBasePriceCny(), car.getDescription(), car.getSourceUrl()
         );
 
         CarConfiguration conf1 = CarConfiguration.builder()
             .carId((long) 1)
+            .originalName("A3 Sportback 35TFSI 飞驰悦享型")
             .name("EXTREME")
             .basePriceCny(new BigDecimal("1200.00"))
             .build();
 
         CarConfiguration conf2 = CarConfiguration.builder()
             .carId((long) 1)
+            .originalName("A3 Sportback 35TFSI 飞驰尊享型")
             .name("LOW PRICE")
             .basePriceCny(new BigDecimal("900.99"))
             .build();
@@ -89,8 +92,8 @@ class CarConfigurationRepositoriesTest {
 
         Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM cars_configurations", Integer.class);
         assertEquals(confs.size(), count);
-        Long id1 = carConfigurationRepository.findIdByCarIdAndName(conf1.getCarId(), conf1.getName()).get();
-        Long id2 = carConfigurationRepository.findIdByCarIdAndName(conf2.getCarId(), conf2.getName()).get();
+        Long id1 = carConfigurationRepository.findIdByCarIdAndOriginalName(conf1.getCarId(), conf1.getOriginalName()).get();
+        Long id2 = carConfigurationRepository.findIdByCarIdAndOriginalName(conf2.getCarId(), conf2.getOriginalName()).get();
         BigDecimal savedPrice = jdbcTemplate.queryForObject("SELECT base_price_cny FROM cars_configurations WHERE id = ?", 
             BigDecimal.class, id2);
         assertEquals(conf2.getBasePriceCny(), savedPrice);
@@ -106,26 +109,28 @@ class CarConfigurationRepositoriesTest {
         Car car = Car.builder()
             .id((long) 1)
             .brand(CarBrand.Audi)
+            .originalModel("全新奥迪 A6L")
             .model("Comfort A")
             .basePriceCny(new BigDecimal("1200.00"))
             .build();
         jdbcTemplate.update("""
-            INSERT INTO cars (id, brand, series, model, base_price_cny, description, source_url) VALUES (?,?,?,?,?,?,?)
+            INSERT INTO cars (id, brand, series, original_model, model, base_price_cny, description, source_url) VALUES (?,?,?,?,?,?,?,?)
             """,
-            car.getId(), car.getBrand().name(), car.getSeries(), car.getModel(), car.getBasePriceCny(),
-            car.getDescription(), car.getSourceUrl()
+            car.getId(), car.getBrand().name(), car.getSeries(), car.getOriginalModel(), car.getModel(),
+            car.getBasePriceCny(), car.getDescription(), car.getSourceUrl()
         );
 
         Long id = (long) 1;
         CarConfiguration conf = CarConfiguration.builder()
             .id(id)
             .carId((long) 1)
+            .originalName("A3 Sportback 35TFSI 飞驰悦享型")
             .name("EXTREME")
             .basePriceCny(new BigDecimal("1200.00"))
             .build();
 
-        jdbcTemplate.update("INSERT INTO cars_configurations (id, car_id, name, base_price_cny) VALUES (?,?,?,?)",
-                conf.getId(), conf.getCarId(), conf.getName(), conf.getBasePriceCny());
+        jdbcTemplate.update("INSERT INTO cars_configurations (id, car_id, original_name, name, base_price_cny) VALUES (?,?,?,?,?)",
+                conf.getId(), conf.getCarId(), conf.getOriginalName(), conf.getName(), conf.getBasePriceCny());
 
         LocalDateTime time = LocalDateTime.of(2026, 2, 10, 10, 10, 0);
 
@@ -140,9 +145,9 @@ class CarConfigurationRepositoriesTest {
         assertEquals(1, count);
         BigDecimal actualPrice = jdbcTemplate.queryForObject("""
                 SELECT base_price_cny FROM cars_configurations WHERE 
-                car_id = ? AND name = ?
+                car_id = ? AND original_name = ?
                 """,
-                BigDecimal.class, conf.getCarId(), conf.getName());
+                BigDecimal.class, conf.getCarId(), conf.getOriginalName());
         assertEquals(conf.getBasePriceCny(), actualPrice);
 
         carConfigurationTimesRepository.batchUpsert(List.of(id));

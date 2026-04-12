@@ -69,7 +69,7 @@ public class AudiParser {
                 Car rawCar = Car.builder()
                     .brand(CarBrand.Audi)
                     .series(seriesTitle)
-                    .model(modelName)
+                    .originalModel(modelName)
                     .basePriceCny(modelBasePrice)
                     .sourceUrl(sourceUrl)
                     .build();
@@ -90,38 +90,38 @@ public class AudiParser {
         Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
         BrowserContext context = browser.newContext();
         context.addCookies(Arrays.asList(
-                new Cookie("cookiePolicy", "true")
-                        .setDomain(".audi.cn")
-                        .setPath("/")
+            new Cookie("cookiePolicy", "true")
+                .setDomain(".audi.cn")
+                .setPath("/")
         ));
         Page page = context.newPage();
         page.navigate(externalSourceUrl, new Page.NavigateOptions()
-                .setWaitUntil(WaitUntilState.DOMCONTENTLOADED)
-                .setTimeout(240000)
+            .setWaitUntil(WaitUntilState.DOMCONTENTLOADED)
+            .setTimeout(240000)
         );
         page.waitForSelector(".value-cub", new Page.WaitForSelectorOptions()
-                .setState(WaitForSelectorState.ATTACHED)
+            .setState(WaitForSelectorState.ATTACHED)
         );
         String html = page.content();
         Document doc = Jsoup.parse(html);
 
         // Получаем перечень конфигураций модели
         Elements configurationElements = Objects.requireNonNull(doc.getElementsByClass("top-table_container").first())
-                .select("td[data-key]");
+            .select("td[data-key]");
         for (Element configuration : configurationElements) {
             String name = configuration.select(".car-name-title").text();
             BigDecimal basePriceCny = new BigDecimal(
-                    Objects.requireNonNull(configuration.select(".price-name").first())
-                            .ownText()
-                            .replace(",", "")
+                Objects.requireNonNull(configuration.select(".price-name").first())
+                    .ownText()
+                    .replace(",", "")
             );
             CarConfiguration carConfiguration = CarConfiguration.builder()
-                    .name(name)
-                    .basePriceCny(basePriceCny)
-                    .build();
+                .originalName(name)
+                .basePriceCny(basePriceCny)
+                .build();
             ConfigurationDetails configurationDetails = ConfigurationDetails.builder()
-                    .carConfiguration(carConfiguration)
-                    .build();
+                .carConfiguration(carConfiguration)
+                .build();
             result.add(configurationDetails);
         }
 
@@ -130,9 +130,9 @@ public class AudiParser {
         Elements categoriesTables = doc.select("table[id~=compare_type_\\d+]");
         for (Element categoryTable : categoriesTables) {
             String category = Objects.requireNonNull(categoryTable.select(".type-name")
-                    .first())
-                    .child(0)
-                    .text();
+                .first())
+                .child(0)
+                .text();
             Element optionsTable = categoryTable.nextElementSibling();
             assert optionsTable != null;
             Elements rows = optionsTable.select("tbody > tr");
@@ -145,8 +145,8 @@ public class AudiParser {
                     Elements optionsType = cells.get(i).select(".options-type");
                     if (!optionsType.isEmpty()) {
                         Element type = Objects.requireNonNull(optionsType.first())
-                                .select(".options-type-icon")
-                                .first();
+                            .select(".options-type-icon")
+                            .first();
                         assert type != null;
                         if (type.hasClass("standard-icon")) value = "included";
                         else if (type.hasClass("alternative-icon")) value = "is_optional";
@@ -154,19 +154,19 @@ public class AudiParser {
                     }
                     else {
                         value = Objects.requireNonNull(cells.get(i).select(".value-cub > .item").first())
-                                .child(0)
-                                .text();
+                            .child(0)
+                            .text();
                     }
 
                     ConfigurationOption option = ConfigurationOption.builder()
-                            .category(category)
-                            .name(name)
-                            .value(value)
-                            .build();
+                        .category(category)
+                        .originalName(name)
+                        .value(value)
+                        .build();
                     if (value.equals("is_optional")) {
                         String raw = Objects.requireNonNull(cells.get(i).select(".value-cub > .item").first())
-                                .child(0)
-                                .text();
+                            .child(0)
+                            .text();
                         option.setPriceCny(new BigDecimal(raw.replaceAll("[^0-9.-]", "")));
                     }
 

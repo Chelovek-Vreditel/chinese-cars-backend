@@ -22,6 +22,7 @@ public class Car {
 
     private CarBrand brand;
     private String series;
+    private String originalModel;
     private String model;
     private BigDecimal basePriceCny;
     private String description;

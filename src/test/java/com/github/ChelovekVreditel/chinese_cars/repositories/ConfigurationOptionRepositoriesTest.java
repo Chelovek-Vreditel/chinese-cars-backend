@@ -65,35 +65,39 @@ class ConfigurationOptionRepositoriesTest {
         Car car = Car.builder()
             .id((long) 1)
             .brand(CarBrand.Audi)
+            .originalModel("全新奥迪 A6L")
             .model("Comfort A")
             .basePriceCny(new BigDecimal("1200.00"))
             .build();
         jdbcTemplate.update("""
-            INSERT INTO cars (id, brand, series, model, base_price_cny, description, source_url) VALUES (?,?,?,?,?,?,?)
+            INSERT INTO cars (id, brand, series, original_model, model, base_price_cny, description, source_url) VALUES (?,?,?,?,?,?,?,?)
             """,
-            car.getId(), car.getBrand().name(), car.getSeries(), car.getModel(), car.getBasePriceCny(),
-            car.getDescription(), car.getSourceUrl()
+            car.getId(), car.getBrand().name(), car.getSeries(), car.getOriginalModel(), car.getModel(),
+            car.getBasePriceCny(), car.getDescription(), car.getSourceUrl()
         );
         CarConfiguration conf = CarConfiguration.builder()
             .id((long) 1)
             .carId(car.getId())
+            .originalName("A3 Sportback 35TFSI 飞驰悦享型")
             .name("EXTREME")
             .basePriceCny(new BigDecimal("1200.00"))
             .build();
         jdbcTemplate.update("""
-            INSERT INTO cars_configurations (id, car_id, name, base_price_cny) VALUES (?,?,?,?)
+            INSERT INTO cars_configurations (id, car_id, original_name, name, base_price_cny) VALUES (?,?,?,?,?)
             """,
-            conf.getId(), conf.getCarId(), conf.getName(), conf.getBasePriceCny()
+            conf.getId(), conf.getCarId(), conf.getOriginalName(), conf.getName(), conf.getBasePriceCny()
         );
 
         ConfigurationOption option1 = ConfigurationOption.builder()
             .configurationId((long) 1)
             .category("Внутренности")
+            .originalName("倒车影像系统")
             .name("Двигатель V8")
             .value("included")
             .build();
         ConfigurationOption option2 = ConfigurationOption.builder()
             .configurationId((long) 1)
+            .originalName("外后视镜电动调整、加热、电动折叠、自动防眩目、带记忆功能")
             .name("Сидения с подогревом")
             .value("is_optional")
             .priceCny(new BigDecimal("100.80"))
@@ -106,9 +110,9 @@ class ConfigurationOptionRepositoriesTest {
         assertEquals(options.size(), count);
 
         List<SimpleEntry<Long, String>> searchingProperties = options.stream()
-            .map(o -> new AbstractMap.SimpleEntry<>(o.getConfigurationId(), o.getName()))
+            .map(o -> new AbstractMap.SimpleEntry<>(o.getConfigurationId(), o.getOriginalName()))
             .toList();
-        List<Long> ids = configurationOptionRepository.findIdsByConfigurationIdAndName(searchingProperties);
+        List<Long> ids = configurationOptionRepository.findIdsByConfigurationIdAndOriginalName(searchingProperties);
 
 
         String savedValue = jdbcTemplate.queryForObject("SELECT value FROM configuration_options WHERE id = ?", 
@@ -125,40 +129,43 @@ class ConfigurationOptionRepositoriesTest {
         Car car = Car.builder()
             .id((long) 1)
             .brand(CarBrand.Audi)
+            .originalModel("全新奥迪 A6L")
             .model("Comfort A")
             .basePriceCny(new BigDecimal("1200.00"))
             .build();
         jdbcTemplate.update("""
-            INSERT INTO cars (id, brand, series, model, base_price_cny, description, source_url) VALUES (?,?,?,?,?,?,?)
+            INSERT INTO cars (id, brand, series, original_model, model, base_price_cny, description, source_url) VALUES (?,?,?,?,?,?,?,?)
             """,
-            car.getId(), car.getBrand().name(), car.getSeries(), car.getModel(), car.getBasePriceCny(),
-            car.getDescription(), car.getSourceUrl()
+            car.getId(), car.getBrand().name(), car.getSeries(), car.getOriginalModel(), car.getModel(),
+            car.getBasePriceCny(), car.getDescription(), car.getSourceUrl()
         );
         CarConfiguration conf = CarConfiguration.builder()
             .id((long) 1)
             .carId(car.getId())
+            .originalName("A3 Sportback 35TFSI 飞驰悦享型")
             .name("EXTREME")
             .basePriceCny(new BigDecimal("1200.00"))
             .build();
         jdbcTemplate.update("""
-            INSERT INTO cars_configurations (id, car_id, name, base_price_cny) VALUES (?,?,?,?)
+            INSERT INTO cars_configurations (id, car_id, original_name, name, base_price_cny) VALUES (?,?,?,?,?)
             """,
-            conf.getId(), conf.getCarId(), conf.getName(), conf.getBasePriceCny()
+            conf.getId(), conf.getCarId(), conf.getOriginalName(), conf.getName(), conf.getBasePriceCny()
         );
 
         Long id = (long) 1;
         ConfigurationOption option = ConfigurationOption.builder()
             .id(id)
             .configurationId((long) 1)
+            .originalName("倒车影像系统")
             .name("Двигатель V8")
             .value("included")
             .build();
 
         jdbcTemplate.update("""
-            INSERT INTO configuration_options (id, configuration_id, category, name, value, price_cny) VALUES (?,?,?,?,?,?)
+            INSERT INTO configuration_options (id, configuration_id, category, original_name, name, value, price_cny) VALUES (?,?,?,?,?,?,?)
             """,
-            option.getId(), option.getConfigurationId(), option.getCategory(), option.getName(),
-            option.getValue(), option.getPriceCny()
+            option.getId(), option.getConfigurationId(), option.getCategory(), option.getOriginalName(),
+            option.getName(), option.getValue(), option.getPriceCny()
         );
 
         LocalDateTime time = LocalDateTime.of(2026, 2, 10, 10, 10, 0);

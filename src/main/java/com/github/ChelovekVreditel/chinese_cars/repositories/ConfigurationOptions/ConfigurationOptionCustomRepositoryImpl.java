@@ -26,9 +26,9 @@ public class ConfigurationOptionCustomRepositoryImpl implements ConfigurationOpt
     @Override
     public void batchUpsert(List<ConfigurationOption> options) {
         String sql = """
-            INSERT INTO configuration_options (configuration_id, category, name, value, price_cny)
-            VALUES (:configurationId, :category, :name, :value, :priceCny)
-            ON CONFLICT (configuration_id, name) DO UPDATE SET 
+            INSERT INTO configuration_options (configuration_id, category, original_name, name, value, price_cny)
+            VALUES (:configurationId, :category, :originalName, :name, :value, :priceCny)
+            ON CONFLICT (configuration_id, original_name) DO UPDATE SET 
                 category = EXCLUDED.category,
                 value = EXCLUDED.value,
                 price_cny = EXCLUDED.price_cny
@@ -42,13 +42,13 @@ public class ConfigurationOptionCustomRepositoryImpl implements ConfigurationOpt
     }
 
     @Override
-    public List<Long> findIdsByConfigurationIdAndName(List<SimpleEntry<Long, String>> characteristics) {
+    public List<Long> findIdsByConfigurationIdAndOriginalName(List<SimpleEntry<Long, String>> characteristics) {
         if (characteristics == null || characteristics.isEmpty()) {
             return List.of();
         }
         
         String conditions = characteristics.stream()
-            .map(entry -> "(configuration_id = ? AND name = ?)")
+            .map(entry -> "(configuration_id = ? AND original_name = ?)")
             .collect(Collectors.joining(" OR "));
         
         String sql = "SELECT id FROM configuration_options WHERE " + conditions;

@@ -59,6 +59,7 @@ class CarRepositoriesTest {
         Car car1 = Car.builder()
             .brand(CarBrand.Audi)
             .series("A")
+            .originalModel("全新奥迪 A6L")
             .model("super A")
             .basePriceCny(new BigDecimal("910.24"))
             .description("Хорошая машина")
@@ -67,20 +68,21 @@ class CarRepositoriesTest {
 
         Car car2 = Car.builder()
             .brand(CarBrand.BMW)
+            .originalModel("A8L Horch 创始人版")
             .model("KBM")
             .basePriceCny(new BigDecimal("1400.32"))
             .build();
 
-        carRepository.upsert(car1.getBrand(), car1.getSeries(), car1.getModel(), car1.getBasePriceCny(),
-                car1.getDescription(), car1.getSourceUrl());
-        carRepository.upsert(car2.getBrand(), car2.getSeries(), car2.getModel(), car2.getBasePriceCny(),
-                car2.getDescription(), car2.getSourceUrl());
+        carRepository.upsert(car1.getBrand(), car1.getSeries(), car1.getOriginalModel(), car1.getModel(),
+                car1.getBasePriceCny(), car1.getDescription(), car1.getSourceUrl());
+        carRepository.upsert(car2.getBrand(), car2.getSeries(), car2.getOriginalModel(), car2.getModel(),
+                car2.getBasePriceCny(), car2.getDescription(), car2.getSourceUrl());
 
         Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM cars", Integer.class);
         assertEquals(2, count);
-        Long id = carRepository.findIdByBrandAndModel(CarBrand.Audi, "super A").get();
+        Long id = carRepository.findIdByBrandAndOriginalModel(car1.getBrand(), car1.getOriginalModel()).get();
         String savedSeries = jdbcTemplate.queryForObject("SELECT series FROM cars WHERE id = ?", String.class, id);
-        assertEquals("A", savedSeries);
+        assertEquals(car1.getSeries(), savedSeries);
 
         carTimesRepository.upsert(id);
         count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM cars_update_times", Integer.class);
@@ -92,14 +94,15 @@ class CarRepositoriesTest {
         Long id = (long) 1;
         CarBrand brand = CarBrand.Audi;
         String series = "A";
+        String originalModel = "全新奥迪 A6L";
         String model = "super";
         BigDecimal basePriceCny = new BigDecimal("1200.20");
         String description = "Изумительна";
         String sourceUrl = "http://some.fake.url";
 
         jdbcTemplate.update(
-            "INSERT INTO cars (id, brand, series, model, base_price_cny, description, source_url) VALUES (?,?,?,?,?,?,?)",
-            id, brand.name(), series, model, basePriceCny, null, sourceUrl 
+            "INSERT INTO cars (id, brand, series, original_model, model, base_price_cny, description, source_url) VALUES (?,?,?,?,?,?,?,?)",
+            id, brand.name(), series, originalModel, model, basePriceCny, null, sourceUrl 
         );
 
         LocalDateTime time = LocalDateTime.of(2026, 1, 1, 12, 30, 0);
@@ -112,19 +115,20 @@ class CarRepositoriesTest {
         Car updatedCar = Car.builder()
             .brand(brand)
             .series(series)
+            .originalModel(originalModel)
             .model(model)
             .basePriceCny(basePriceCny)
             .description(description)
             .sourceUrl(null)
             .build();
 
-        carRepository.upsert(updatedCar.getBrand(), updatedCar.getSeries(), updatedCar.getModel(),
+        carRepository.upsert(updatedCar.getBrand(), updatedCar.getSeries(), updatedCar.getOriginalModel(), updatedCar.getModel(),
                 updatedCar.getBasePriceCny(), updatedCar.getDescription(), updatedCar.getSourceUrl());
 
         Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM cars", Integer.class); 
         assertEquals(1, count);
-        String actualDescription = jdbcTemplate.queryForObject("SELECT description FROM cars WHERE brand = ? AND model = ?",
-                String.class, brand.name(), model);
+        String actualDescription = jdbcTemplate.queryForObject("SELECT description FROM cars WHERE brand = ? AND original_model = ?",
+                String.class, brand.name(), originalModel);
         assertEquals(description, actualDescription);
 
         carTimesRepository.upsert(id);

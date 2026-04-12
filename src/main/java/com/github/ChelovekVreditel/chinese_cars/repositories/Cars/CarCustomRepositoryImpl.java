@@ -19,9 +19,9 @@ public class CarCustomRepositoryImpl implements CarCustomRepository {
     @Override
     public void batchUpsert(List<Car> cars) {
         String sql = """
-            INSERT INTO cars (brand, series, model, base_price_cny, description, source_url)
-            VALUES (:brand, :series, :model, :basePriceCny, :description, :sourceUrl)
-            ON CONFLICT (brand, model) DO UPDATE SET 
+            INSERT INTO cars (brand, series, original_model, model, base_price_cny, description, source_url)
+            VALUES (:brand, :series, :originalModel, :model, :basePriceCny, :description, :sourceUrl)
+            ON CONFLICT (brand, original_model) DO UPDATE SET 
                 series = EXCLUDED.series,
                 base_price_cny = EXCLUDED.base_price_cny,
                 description = EXCLUDED.description,
