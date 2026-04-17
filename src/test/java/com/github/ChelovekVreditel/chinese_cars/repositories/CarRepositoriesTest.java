@@ -3,7 +3,9 @@ package com.github.ChelovekVreditel.chinese_cars.repositories;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
+import java.sql.PreparedStatement;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.github.ChelovekVreditel.chinese_cars.configs.JdbcConfig;
 import com.github.ChelovekVreditel.chinese_cars.enums.CarBrand;
@@ -138,5 +140,46 @@ class CarRepositoriesTest {
         LocalDateTime actualTime = jdbcTemplate.queryForObject("SELECT updated_at FROM cars_update_times WHERE car_id = ?",
                 LocalDateTime.class, id);
         assertNotEquals(time, actualTime);
+    }
+
+    @Test
+    void shouldReturnModelsByBrand() {
+        Car car1 = Car.builder()
+            .id((long) 1)
+            .brand(CarBrand.Audi)
+            .series("A")
+            .originalModel("全新奥迪 A6L")
+            .model("SUPER")
+            .basePriceCny(new BigDecimal("1200.00"))
+            .build();
+        Car car2 = Car.builder()
+            .id((long) 2)
+            .brand(CarBrand.Mercedes)
+            .series("M")
+            .originalModel("A8L Horch 创始人版")
+            .model("EXTREME")
+            .basePriceCny(new BigDecimal("1890.10"))
+            .build();
+        List<Car> carsToSave = List.of(car1, car2);
+
+        String sql = """
+            INSERT INTO cars (id, brand, series, original_model, model, base_price_cny, description, source_url)
+            VALUES (?,?,?,?,?,?,?,?)
+        """;
+        jdbcTemplate.batchUpdate(sql, carsToSave, 2, 
+            (PreparedStatement ps, Car car) -> {
+                ps.setLong(1, car.getId());
+                ps.setString(2, car.getBrand().name());
+                ps.setString(3, car.getSeries());
+                ps.setString(4, car.getOriginalModel());
+                ps.setString(5, car.getModel());
+                ps.setBigDecimal(6, car.getBasePriceCny());
+                ps.setNull(7, java.sql.Types.LONGVARCHAR);
+                ps.setNull(8, java.sql.Types.LONGVARCHAR);
+        });
+
+        List<Car> response = carRepository.getCarsByBrand(CarBrand.Audi);
+        assertEquals(1, response.size());
+        assertEquals(car1.getModel(), response.get(0).getModel());
     }
 }

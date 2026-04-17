@@ -1,6 +1,7 @@
 package com.github.ChelovekVreditel.chinese_cars.repositories.Cars;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import com.github.ChelovekVreditel.chinese_cars.enums.CarBrand;
@@ -41,4 +42,6 @@ public interface CarRepository extends CrudRepository<@NonNull Car, @NonNull Lon
     @Query("SELECT id FROM cars WHERE brand = :brand AND original_model = :model")
     public Optional<Long> findIdByBrandAndOriginalModel(@Param("brand") CarBrand brand,
                                                 @Param("model") String originalModel);
+
+    public List<Car> getCarsByBrand(CarBrand brand);
 }
