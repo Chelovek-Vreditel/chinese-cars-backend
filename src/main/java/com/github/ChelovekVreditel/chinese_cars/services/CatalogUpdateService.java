@@ -69,6 +69,12 @@ public class CatalogUpdateService {
                     translator.translateConfigurationDetails(details);
                 }
                 saveCarData(audiModel, modelDetails);
+            } catch (ConnectException | SocketTimeoutException ne) {
+                System.err.println("Не удалось подключиться к сайту Audi: " + ne.getMessage());
+                audiModels = List.of();
+            } catch (IOException ioe) {
+                System.err.println("Произошла непревиденная ошибка на этапе парсинга: " + ioe.getMessage());
+                audiModels = List.of();
             } catch (Exception e) {
                 System.err.println("Получена ошибка при обновлении каталога Audi: " + e.getMessage());
                 e.printStackTrace();
