@@ -13,17 +13,20 @@ import com.github.ChelovekVreditel.chinese_cars.utils.Translator;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriUtils;
 
+import lombok.RequiredArgsConstructor;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 @Profile("mvp")
 @Component
+@RequiredArgsConstructor
 public class MyMemoryTranslatorImpl implements Translator {
 
     private RestTemplate createRestTemplate() {
@@ -35,6 +38,11 @@ public class MyMemoryTranslatorImpl implements Translator {
 
     private final RestTemplate restTemplate = createRestTemplate();
     private final ObjectMapper mapper = new ObjectMapper();
+
+    @Value("${mymemory.email.use}")
+    private String useMymemoryEmail;
+    @Value("${mymemory.email.name}")
+    private String mymemoryEmail;
 
     // Параметры для метода translateWithRetry
     private final int MAX_APPLYES = 3;
@@ -50,6 +58,9 @@ public class MyMemoryTranslatorImpl implements Translator {
             UriUtils.encode(originalStr, StandardCharsets.UTF_8),
             UriUtils.encode("zh-CN|ru", StandardCharsets.UTF_8)
         );
+        if (useMymemoryEmail.equals("true") && !mymemoryEmail.isBlank() && mymemoryEmail != null) {
+            url = url + "&de=" + mymemoryEmail;
+        }
 
         URI uri = URI.create(url);
         String response = restTemplate.getForObject(uri, String.class);

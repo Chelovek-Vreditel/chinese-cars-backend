@@ -50,6 +50,7 @@ public class CatalogUpdateService {
 
     private final Translator translator; 
 
+    // @PostConstruct
     public void updateAudiCatalog() {
         List<Car> audiModels; 
         try {
@@ -69,6 +70,7 @@ public class CatalogUpdateService {
                     translator.translateConfigurationDetails(details);
                 }
                 saveCarData(audiModel, modelDetails);
+                // System.out.println("Сохранена модель!");
             } catch (ConnectException | SocketTimeoutException ne) {
                 System.err.println("Не удалось подключиться к сайту Audi: " + ne.getMessage());
                 audiModels = List.of();

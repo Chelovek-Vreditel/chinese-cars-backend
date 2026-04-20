@@ -51,6 +51,9 @@ dependencies {
     // Modules for tests
     testImplementation("org.testcontainers:junit-jupiter:1.21.4")
     testImplementation("org.testcontainers:postgresql:1.21.4")
+    // Environmental variables from .env file
+    implementation(platform("me.paulschwarz:spring-dotenv-bom:5.1.0"))
+    developmentOnly("me.paulschwarz:springboot4-dotenv")
 }
 
 tasks.withType<Test> {

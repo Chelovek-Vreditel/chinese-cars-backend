@@ -7,10 +7,22 @@ import com.github.ChelovekVreditel.chinese_cars.models.CarConfiguration;
 import com.github.ChelovekVreditel.chinese_cars.models.ConfigurationOption;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
+@SpringBootTest
 public class MyMemoryTranslatorImplTest {
 
-    private final MyMemoryTranslatorImpl translator = new MyMemoryTranslatorImpl();
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("USE_MYMEMORY_EMAIL", () -> "false");
+        registry.add("MYMEMORY_EMAIL", () -> "");
+    }
+
+    @Autowired
+    private MyMemoryTranslatorImpl translator;
 
     @Test
     public void translateConfigurationDetailsTest() {

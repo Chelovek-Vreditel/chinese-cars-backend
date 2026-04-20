@@ -15,3 +15,5 @@ out/
 .factorypath
 .project
 .settings/
+.env
+application.log**
