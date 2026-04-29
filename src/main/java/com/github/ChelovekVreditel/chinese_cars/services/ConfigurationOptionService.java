@@ -14,6 +14,8 @@ public class ConfigurationOptionService {
 
     @Autowired
     private ConfigurationOptionRepository optionRepository;
+    @Autowired
+    private CurrencyConverter converter;
 
     public List<ConfigurationOptionDto> getOptionsByConfigurationId(Long confId) throws Exception {
         List<ConfigurationOption> repositoryResponse = optionRepository.getConfigurationOptionsByConfigurationId(confId);
@@ -21,7 +23,11 @@ public class ConfigurationOptionService {
             throw new Exception("Не было найдено ни одной опции для конфигурации с id " + confId);
         }
         List<ConfigurationOptionDto> result = repositoryResponse.stream()
-            .map(option -> new ConfigurationOptionDto(option))
+            .map(option -> {
+                ConfigurationOptionDto optionDto = new ConfigurationOptionDto(option);
+                optionDto.setPrice(converter.convertCnyToRub(optionDto.getPrice()));
+                return optionDto;
+            })
             .toList();
         return result;
     }

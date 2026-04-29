@@ -14,6 +14,8 @@ public class CarConfigurationService {
 
     @Autowired
     private CarConfigurationRepository configurationRepository;
+    @Autowired
+    private CurrencyConverter converter;
 
     public List<CarConfigurationDto> getConfiguartionsByCarId(Long carId) throws Exception {
         List<CarConfiguration> repositoryResponse = configurationRepository.getCarConfigurationsByCarId(carId);
@@ -21,7 +23,11 @@ public class CarConfigurationService {
             throw new Exception("Не было найдено ни одной конфигурации для модели с id " + carId);
         }
         List<CarConfigurationDto> result = repositoryResponse.stream()
-            .map(conf -> new CarConfigurationDto(conf))
+            .map(conf -> {
+                CarConfigurationDto confDto = new CarConfigurationDto(conf);
+                confDto.setBasePrice(converter.convertCnyToRub(confDto.getBasePrice()));
+                return confDto;
+            })
             .toList();
         return result;
     }
