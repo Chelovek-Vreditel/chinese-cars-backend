@@ -16,8 +16,8 @@ public class CurrencyConverter {
     private final ExchangeRateService exchangeRateService;
 
     public BigDecimal convertCnyToRub(BigDecimal amountInCny) {
-        if (amountInCny == null || amountInCny.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Значение для перевода из CNY в RUB должно быть больше 0.");
+        if (amountInCny == null) {
+            throw new IllegalArgumentException("Значение для перевода из CNY в RUB равно null.");
         }
         BigDecimal rate = exchangeRateService.getCnyToRubRate();
         return amountInCny

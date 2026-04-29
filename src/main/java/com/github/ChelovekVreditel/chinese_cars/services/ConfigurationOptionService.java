@@ -25,7 +25,7 @@ public class ConfigurationOptionService {
         List<ConfigurationOptionDto> result = repositoryResponse.stream()
             .map(option -> {
                 ConfigurationOptionDto optionDto = new ConfigurationOptionDto(option);
-                optionDto.setPrice(converter.convertCnyToRub(optionDto.getPrice()));
+                if (optionDto.getPrice() != null) optionDto.setPrice(converter.convertCnyToRub(optionDto.getPrice()));
                 return optionDto;
             })
             .toList();
