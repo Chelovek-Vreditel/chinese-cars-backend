@@ -24,4 +24,14 @@ public class CurrencyConverter {
                 .multiply(rate)
                 .setScale(2, RoundingMode.HALF_UP);
     }
+
+    public BigDecimal convertEurToRub(BigDecimal amountInEur) {
+        if (amountInEur == null) {
+            throw new IllegalArgumentException("Значение для перевода из EUR в RUB равно null.");
+        }
+        BigDecimal rate = exchangeRateService.getEurToRubRate();
+        return amountInEur
+                .multiply(rate)
+                .setScale(2, RoundingMode.HALF_UP);
+    }
 }

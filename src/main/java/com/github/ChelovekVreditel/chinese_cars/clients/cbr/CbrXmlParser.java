@@ -29,7 +29,6 @@ public class CbrXmlParser {
     }
 
     private static final String CBR_DAILY_PATH = "/scripts/XML_daily.asp";
-    private static final String CNY_CHAR_CODE  = "CNY";
     private static final Charset WINDOWS_1251  = Charset.forName("windows-1251");
 
     private static final JAXBContext JAXB_CONTEXT;
@@ -42,16 +41,16 @@ public class CbrXmlParser {
         }
     }
 
-    public Mono<BigDecimal> fetchCnyRate() {
+    public Mono<BigDecimal> fetchRate(String charCode) {
         return webClient.get()
                 .uri(CBR_DAILY_PATH)
                 .retrieve()
                 .bodyToMono(byte[].class)
                 .map(bytes -> new String(bytes, WINDOWS_1251))
                 .map(this::parseXml)
-                .map(this::extractCnyRate)
-                .doOnSuccess(rate -> log.debug("Текущий курс CNY по данным ЦБР: {}", rate))
-                .doOnError(e -> log.error("Получена ошибка при получении текущего курса CNY с API ЦБР: {}", e.getMessage()));
+                .map(valCurs -> extractRate(valCurs, charCode))
+                .doOnSuccess(rate -> log.debug("Текущий курс по данным ЦБР: {}", rate))
+                .doOnError(e -> log.error("Получена ошибка при получении текущего курса с API ЦБР: {}", e.getMessage()));
     }
 
     private ValCurs parseXml(String xml) {
@@ -63,15 +62,15 @@ public class CbrXmlParser {
         }
     }
     
-    private BigDecimal extractCnyRate(ValCurs valCurs) {
+    private BigDecimal extractRate(ValCurs valCurs, String charCode) {
         return valCurs.getValutes().stream()
-                .filter(v -> CNY_CHAR_CODE.equals(v.getCharCode()))
+                .filter(v -> charCode.equals(v.getCharCode()))
                 .findFirst()
                 .map(v -> {
                     BigDecimal value   = new BigDecimal(v.getValue().replace(",", "."));
                     BigDecimal nominal = BigDecimal.valueOf(v.getNominal());
                     return value.divide(nominal, 6, RoundingMode.HALF_UP);
                 })
-                .orElseThrow(() -> new RuntimeException("Данные о курсе CNY не найдены в ответе от ЦБР."));
+                .orElseThrow(() -> new RuntimeException("Данные о курсе не найдены в ответе от ЦБР."));
     }
 }

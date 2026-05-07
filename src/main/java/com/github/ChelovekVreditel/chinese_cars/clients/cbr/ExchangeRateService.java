@@ -19,25 +19,31 @@ public class ExchangeRateService {
     private final CbrXmlParser cbrXmlParser;
 
     private final AtomicReference<BigDecimal> cnyToRubRate = new AtomicReference<>();
+    private final AtomicReference<BigDecimal> eurToRubRate = new AtomicReference<>();
 
     @PostConstruct
     public void init() {
-        log.info("Получение курса CNY/RUB при запуске...");
+        log.info("Получение курсов CNY/RUB и EUR/RUB при запуске...");
         try {
-            BigDecimal rate = cbrXmlParser.fetchCnyRate().block(Duration.ofSeconds(15));
+            BigDecimal rate = cbrXmlParser.fetchRate("CNY").block(Duration.ofSeconds(15));
             if (rate != null) {
                 cnyToRubRate.set(rate);
                 log.info("Начальное соотношение CNY/RUB: 1 CNY = {} RUB", rate);
             }
+            rate = cbrXmlParser.fetchRate("EUR").block(Duration.ofSeconds(15));
+            if (rate != null) {
+                eurToRubRate.set(rate);
+                log.info("Начальное соотношение EUR/RUB: 1 EUR = {} RUB", rate);
+            }
         } catch (Exception e) {
-            log.error("Ошибка при получении курса CNY/RUB при запуске: {}", e.getMessage());
+            log.error("Ошибка при получении курсов при запуске: {}", e.getMessage());
         }
     }
 
     @Scheduled(cron = "0 0 12 * * *")
     public void scheduledRateUpdate() {
         log.info("Запущено обновление курса CNY/RUB.");
-        cbrXmlParser.fetchCnyRate()
+        cbrXmlParser.fetchRate("CNY")
                 .subscribe(
                         rate -> {
                             cnyToRubRate.set(rate);
@@ -45,6 +51,16 @@ public class ExchangeRateService {
                         },
                         error -> log.error("Ошибка при получении текущего курса CNY/RUB: {}", error.getMessage())
                 );
+        log.info("Запущено обновление курса EUR/RUB.");
+        cbrXmlParser.fetchRate("EUR")
+                .subscribe(
+                        rate -> {
+                            cnyToRubRate.set(rate);
+                            log.info("Обновлённый курс EUR/RUB: 1 CNY = {} RUB", rate);
+                        },
+                        error -> log.error("Ошибка при получении текущего курса EUR/RUB: {}", error.getMessage())
+                );
+
     }
 
     public BigDecimal getCnyToRubRate() {
@@ -52,6 +68,16 @@ public class ExchangeRateService {
         if (rate == null) {
             throw new IllegalStateException(
                 "Курс CNY/RUB сейчас не доступен: значение не инициализировано."
+            );
+        }
+        return rate;
+    }
+
+    public BigDecimal getEurToRubRate() {
+        BigDecimal rate = eurToRubRate.get();
+        if (rate == null) {
+            throw new IllegalStateException(
+                "Курс EUR/RUB сейчас не доступен: значение не инициализировано."
             );
         }
         return rate;
