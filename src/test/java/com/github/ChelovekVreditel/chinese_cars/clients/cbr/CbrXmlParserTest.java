@@ -14,10 +14,17 @@ class CbrXmlParserTest {
     void fetchCnyRate_liveFromCbr_printsParsedRate() {
         CbrXmlParser parser = new CbrXmlParser(WebClient.builder());
 
-        BigDecimal rate = parser.fetchCnyRate().block(Duration.ofSeconds(15));
+        BigDecimal rate = parser.fetchRate("CNY").block(Duration.ofSeconds(15));
         System.out.println("Курс CNY/RUB = " + rate);
 
         assertNotNull(rate);
         assertTrue(rate.compareTo(BigDecimal.ZERO) > 0);
+
+        rate = parser.fetchRate("EUR").block(Duration.ofSeconds(15));
+        System.out.println("Курс EUR/RUB = " + rate);
+
+        assertNotNull(rate);
+        assertTrue(rate.compareTo(BigDecimal.ZERO) > 0);
+
     }
 }
