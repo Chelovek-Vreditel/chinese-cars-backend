@@ -1,7 +1,7 @@
 package com.github.ChelovekVreditel.chinese_cars.utils;
 
+import com.github.ChelovekVreditel.chinese_cars.dtos.CarWithImageSource;
 import com.github.ChelovekVreditel.chinese_cars.dtos.ConfigurationDetails;
-import com.github.ChelovekVreditel.chinese_cars.models.Car;
 import com.github.ChelovekVreditel.chinese_cars.models.ConfigurationOption;
 import org.junit.jupiter.api.Test;
 
@@ -14,13 +14,15 @@ public class AudiParserTest {
 
     @Test
     void extractCarsModelsTest() throws IOException {
-        List<Car> extractedCarsModels = audiParser.extractCarsModels(
+        List<CarWithImageSource> extractedCarsModels = audiParser.extractCarsModels(
             "https://www.audi.cn/zh/models.html",
             "/zh/models",
             "https://www.audi.cn/zh/performanceequipment."
         );
-        for (Car car : extractedCarsModels) {
-            System.out.println(car.toString());
+        for (CarWithImageSource carWithImage : extractedCarsModels) {
+            System.out.println("============ МОДЕЛЬ ============");
+            System.out.println(carWithImage.car().toString());
+            System.out.println(carWithImage.imgUrl());
         }
     }
 

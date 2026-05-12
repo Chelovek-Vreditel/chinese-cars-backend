@@ -7,12 +7,17 @@ import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.github.ChelovekVreditel.chinese_cars.dtos.CarWithImageSource;
 import com.github.ChelovekVreditel.chinese_cars.dtos.ConfigurationDetails;
+import com.github.ChelovekVreditel.chinese_cars.dtos.FetchedImage;
 import com.github.ChelovekVreditel.chinese_cars.models.Car;
 import com.github.ChelovekVreditel.chinese_cars.models.CarConfiguration;
+import com.github.ChelovekVreditel.chinese_cars.models.CarImage;
 import com.github.ChelovekVreditel.chinese_cars.models.ConfigurationOption;
+import com.github.ChelovekVreditel.chinese_cars.repositories.CarImageRepository;
 import com.github.ChelovekVreditel.chinese_cars.repositories.CarsUpdateTimesRepository;
 import com.github.ChelovekVreditel.chinese_cars.repositories.CarConfigurations.CarConfigurationRepository;
 import com.github.ChelovekVreditel.chinese_cars.repositories.Cars.CarRepository;
@@ -28,8 +33,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class CatalogUpdateService {
 
@@ -39,6 +46,7 @@ public class CatalogUpdateService {
     private final CarsConfigurationsUpdateTimesRepository carConfigurationTimeRepository;
     private final ConfigurationOptionRepository configurationOptionRepository;
     private final ConfigurationOptionsUpdateTimesRepository configurationOptionTimeRepository;
+    private final CarImageRepository carImageRepository;
 
     @Value("${external.url.Audi.models}")
     private String urlAudiModels;
@@ -50,9 +58,12 @@ public class CatalogUpdateService {
 
     private final Translator translator; 
 
+    private final ImageFetchService imageFetchService;
+    private final ImageStorageService imageStorageService;
+
     // @PostConstruct
     public void updateAudiCatalog() {
-        List<Car> audiModels; 
+        List<CarWithImageSource> audiModels; 
         try {
             audiModels = audiParser.extractCarsModels(urlAudiModels, urlAudiModelsSpecificPart, urlAudiBase);
         } catch (ConnectException | SocketTimeoutException ne) {
@@ -62,15 +73,17 @@ public class CatalogUpdateService {
             System.err.println("Произошла непревиденная ошибка на этапе парсинга: " + ioe.getMessage());
             audiModels = List.of();
         }
-        for (Car audiModel : audiModels) {
+        for (CarWithImageSource audiModelWithImage : audiModels) {
             try {
+                Car audiModel = audiModelWithImage.car();
+                String modelImageUrl = audiModelWithImage.imgUrl();
                 translator.translateCar(audiModel);
                 List<ConfigurationDetails> modelDetails = audiParser.extractConfigurationsDetails(audiModel.getSourceUrl());
                 for (ConfigurationDetails details : modelDetails) {
                     translator.translateConfigurationDetails(details);
                 }
-                saveCarData(audiModel, modelDetails);
-                // System.out.println("Сохранена модель!");
+                saveCarData(audiModel, modelDetails, modelImageUrl);
+                log.info("Сохранена модель.");
             } catch (ConnectException | SocketTimeoutException ne) {
                 System.err.println("Не удалось подключиться к сайту Audi: " + ne.getMessage());
                 audiModels = List.of();
@@ -85,7 +98,7 @@ public class CatalogUpdateService {
     } 
 
     @Transactional
-    protected void saveCarData(Car car, List<ConfigurationDetails> configurationDetails) throws Exception {
+    protected void saveCarData(Car car, List<ConfigurationDetails> configurationDetails, String imgUrl) throws Exception {
         carRepository.upsert(car.getBrand(), car.getSeries(), car.getOriginalModel(), car.getModel(),
                                 car.getBasePriceCny(), car.getDescription(), car.getSourceUrl());
         Long carId = carRepository.findIdByBrandAndOriginalModel(car.getBrand(), car.getOriginalModel())
@@ -117,5 +130,40 @@ public class CatalogUpdateService {
         List<Long> optionsIds = configurationOptionRepository.findIdsByConfigurationIdAndOriginalName(searchingProperties);
         if (optionsIds.isEmpty()) throw new Exception("Не были найдены объекты ConfigurationOption после сохранения в БД.");
         configurationOptionTimeRepository.batchUpsert(optionsIds);
+
+        saveImage(imgUrl, carId);
+    }
+
+    private void saveImage(String imgUrl, Long carId) {
+        if (carImageRepository.existsBySourceUrl(imgUrl)) {
+            log.info("Изображение  уже существует - пропуск.");
+        }
+        else {
+            Optional<FetchedImage> fetched = imageFetchService.fetch(imgUrl);
+            if (fetched.isEmpty()) {
+                log.error("Не получилось извлечь фото по url.");
+                return;
+            }
+            try {
+                String storageKey = imageStorageService.upload(
+                    fetched.get().bytes(),
+                    fetched.get().contentType(),
+                    carId
+                );
+
+                CarImage carImage = new CarImage();
+                carImage.setCarId(carId);
+                carImage.setStorageKey(storageKey);
+                carImage.setSourceUrl(imgUrl);
+                carImage.setContentType(fetched.get().contentType());
+
+                carImageRepository.save(carImage);
+
+                log.info("Сохранено изображение: {}", storageKey);
+
+            } catch (Exception e) {
+                log.error("Ошибка сохранения изображения {}: {}", imgUrl, e.getMessage());
+            }
+        }
     }
 }

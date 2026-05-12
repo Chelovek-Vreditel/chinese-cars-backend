@@ -1,5 +1,6 @@
 package com.github.ChelovekVreditel.chinese_cars.utils;
 
+import com.github.ChelovekVreditel.chinese_cars.dtos.CarWithImageSource;
 import com.github.ChelovekVreditel.chinese_cars.dtos.ConfigurationDetails;
 import com.github.ChelovekVreditel.chinese_cars.enums.CarBrand;
 import com.github.ChelovekVreditel.chinese_cars.models.Car;
@@ -25,12 +26,14 @@ import java.util.Objects;
 @Component
 public class AudiParser {
 
-    public List<Car> extractCarsModels(
+    private final String BASE = "http://audi.cn";
+
+    public List<CarWithImageSource> extractCarsModels(
         String externalUrlModels,
         String externalUrlModelsSpecificPart,
         String externalUrlBase
     ) throws IOException {
-        List<Car> extractedCarsModels = new ArrayList<>();
+        List<CarWithImageSource> extractedCarsModels = new ArrayList<>();
 
         // Создание браузера для получения HTML кода страницы после добавления всех данных
         Playwright playwright = Playwright.create();
@@ -73,7 +76,8 @@ public class AudiParser {
                     .basePriceCny(modelBasePrice)
                     .sourceUrl(sourceUrl)
                     .build();
-                extractedCarsModels.add(rawCar);
+                String imgUrl = BASE + model.select(".model-image > img").first().attr("src");
+                extractedCarsModels.add(new CarWithImageSource(rawCar, imgUrl));
             }
         }
         browser.close();

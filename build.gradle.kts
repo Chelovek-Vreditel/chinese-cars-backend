@@ -60,6 +60,8 @@ dependencies {
     // XML parsing
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.5")
     runtimeOnly("com.sun.xml.bind:jaxb-impl:4.0.7")
+    // S3 support for RustFS
+    implementation("software.amazon.awssdk:s3:2.44.4")
 }
 
 tasks.withType<Test> {
