@@ -3,6 +3,8 @@ package com.github.ChelovekVreditel.chinese_cars.services;
 import java.time.Duration;
 import java.util.Optional;
 
+import javax.net.ssl.SSLException;
+
 import com.github.ChelovekVreditel.chinese_cars.dtos.FetchedImage;
 
 import org.springframework.http.MediaType;
@@ -12,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import io.netty.channel.ChannelOption;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.netty.http.client.HttpClient;
@@ -22,16 +26,32 @@ import reactor.netty.http.client.HttpClient;
 public class ImageFetchService {
 
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(5);
-    private static final Duration READ_TIMEOUT    = Duration.ofSeconds(10);
+    private static final Duration READ_TIMEOUT    = Duration.ofSeconds(15);
+    private static final Duration SSL_TIMEOUT = Duration.ofSeconds(15);
+    private static final Duration BLOCK_TIMEOUT = Duration.ofSeconds(40);
 
-    private final WebClient webClient = WebClient.builder()
-        .clientConnector(new ReactorClientHttpConnector(
-            HttpClient.create()
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) CONNECT_TIMEOUT.toMillis())
-                .responseTimeout(READ_TIMEOUT)
-                .followRedirect(true)
-        ))
-        .build();
+    private final WebClient webClient = createWebClient();
+
+    private static WebClient createWebClient() {
+        SslContext sslContext;
+        try {
+            sslContext = SslContextBuilder.forClient().build();
+        } catch (SSLException e) {
+            throw new IllegalStateException("Не удалось создать SSL-контекст", e);
+        }
+
+        HttpClient httpClient = HttpClient.create()
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) CONNECT_TIMEOUT.toMillis())
+            .secure(spec -> spec
+                .sslContext(sslContext)
+                .handshakeTimeout(SSL_TIMEOUT))
+            .responseTimeout(READ_TIMEOUT)
+            .followRedirect(true);
+
+        return WebClient.builder()
+            .clientConnector(new ReactorClientHttpConnector(httpClient))
+            .build();
+    }
 
     public Optional<FetchedImage> fetch(String imageUrl) {
         try {
@@ -39,7 +59,7 @@ public class ImageFetchService {
                 .uri(imageUrl)
                 .retrieve()
                 .toEntity(byte[].class)
-                .block(READ_TIMEOUT);
+                .block(BLOCK_TIMEOUT);
 
             if (response == null || response.getBody() == null) {
                 return Optional.empty();
