@@ -37,7 +37,7 @@ public class AudiParser {
 
         // Создание браузера для получения HTML кода страницы после добавления всех данных
         Playwright playwright = Playwright.create();
-        Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
+        Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
         BrowserContext context = browser.newContext();
         context.addCookies(Arrays.asList(
             new Cookie("cookiePolicy", "true")
@@ -91,7 +91,7 @@ public class AudiParser {
 
         // Создание браузера для получения HTML кода страницы после добавления всех данных
         Playwright playwright = Playwright.create();
-        Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
+        Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
         BrowserContext context = browser.newContext();
         context.addCookies(Arrays.asList(
             new Cookie("cookiePolicy", "true")

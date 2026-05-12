@@ -6,6 +6,7 @@ import java.time.Duration;
 import java.util.Optional;
 
 import com.github.ChelovekVreditel.chinese_cars.dtos.ConfigurationDetails;
+import com.github.ChelovekVreditel.chinese_cars.exceptions.TranslateException;
 import com.github.ChelovekVreditel.chinese_cars.models.Car;
 import com.github.ChelovekVreditel.chinese_cars.models.CarConfiguration;
 import com.github.ChelovekVreditel.chinese_cars.models.ConfigurationOption;
@@ -21,11 +22,13 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriUtils;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 @Profile("mvp")
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class MyMemoryTranslatorImpl implements Translator {
 
@@ -45,10 +48,10 @@ public class MyMemoryTranslatorImpl implements Translator {
     private String mymemoryEmail;
 
     // Параметры для метода translateWithRetry
-    private final int MAX_APPLYES = 3;
-    private final int DELAY_MS = 500;
+    private static final int MAX_APPLYES = 3;
+    private static final int DELAY_MS = 500;
     
-    private LoadingCache<String, String> cache = Caffeine.newBuilder()
+    private final LoadingCache<String, String> cache = Caffeine.newBuilder()
         .maximumSize(10000)
         .build(this::translateWithRetry);
 
@@ -58,7 +61,7 @@ public class MyMemoryTranslatorImpl implements Translator {
             UriUtils.encode(originalStr, StandardCharsets.UTF_8),
             UriUtils.encode("zh-CN|ru", StandardCharsets.UTF_8)
         );
-        if (useMymemoryEmail.equals("true") && !mymemoryEmail.isBlank() && mymemoryEmail != null) {
+        if (useMymemoryEmail.equals("true") && mymemoryEmail != null && !mymemoryEmail.isBlank()) {
             url = url + "&de=" + mymemoryEmail;
         }
 
@@ -74,7 +77,7 @@ public class MyMemoryTranslatorImpl implements Translator {
             }
         }
 
-        throw new Exception("Неожиданная структура ответа.");
+        throw new TranslateException("Неожиданная структура ответа.");
     }
     
     private String translateWithRetry(String originalStr) {
@@ -87,21 +90,21 @@ public class MyMemoryTranslatorImpl implements Translator {
                 return this.translateWithExternalAPI(originalStr);
             }
             catch (Exception e) {
-                System.err.println("В ходе перевода получена ошибка: " + e.getMessage());
+                log.error("В ходе перевода получена ошибка: " + e.getMessage());
                 if (apply < MAX_APPLYES) {
                     try {
                         Thread.sleep(DELAY_MS);
                     }
                     catch (InterruptedException ie) {
                         Thread.currentThread().interrupt();
-                        System.err.println("Перевод прерван.");
+                        log.error("Перевод прерван.");
                         return originalStr;
                     }        
                 } 
             }
         }
 
-        System.err.println("Возникли непредвиденные проблемы при переводе.");
+        log.error("Возникли непредвиденные проблемы при переводе.");
         return originalStr;
     }
 
@@ -142,7 +145,7 @@ public class MyMemoryTranslatorImpl implements Translator {
         Optional.ofNullable(configurationOption.getValue())
             .map(String::strip)
             .filter(s -> !s.isEmpty())
-            .filter(s -> (s != "included" && s != "is_optional" && s != "none"))
+            .filter(s -> (!s.equals("included") && !s.equals("is_optional") && !s.equals("none")))
             .ifPresent(value -> configurationOption.setValue(cache.get(value)));
     }
 
