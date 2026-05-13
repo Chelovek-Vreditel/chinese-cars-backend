@@ -61,7 +61,7 @@ public class CatalogUpdateService {
     private final ImageFetchService imageFetchService;
     private final ImageStorageService imageStorageService;
 
-    @PostConstruct
+    // @PostConstruct
     public void updateAudiCatalog() {
         List<CarWithImageSource> audiModels; 
         try {
