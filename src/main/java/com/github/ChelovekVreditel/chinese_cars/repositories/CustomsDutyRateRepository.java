@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface CustomsDutyRateRepository
         extends CrudRepository<CustomsDutyRate, Long> {
-
+        
     @Query("""
         SELECT * FROM customs_duty_rates
         WHERE age_category = :ageCategory

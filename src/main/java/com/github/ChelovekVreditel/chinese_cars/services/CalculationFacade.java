@@ -74,18 +74,8 @@ public class CalculationFacade {
                 .map(SelectedOptionDto::getPriceRub)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // 4. Таможенная стоимость = цена авто + опции + доставка + страховка
-        BigDecimal deliveryRub = getSettingAsDecimal("delivery_cost_rub");
-        BigDecimal insurancePercent = getSettingAsDecimal("insurance_percent");
-
-        BigDecimal carWithOptionsPriceRub = baseCarPriceRub.add(optionsTotalRub);
-        BigDecimal insuranceRub = carWithOptionsPriceRub
-                .multiply(insurancePercent)
-                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-
-        BigDecimal customsValueRub = carWithOptionsPriceRub
-                .add(deliveryRub)
-                .add(insuranceRub);
+        // 4. Общая стоисоть
+        BigDecimal customsValueRub = baseCarPriceRub.add(optionsTotalRub);
 
         // 5. Расчёт платежей
         BigDecimal customsDutyRub  = customsDutyService.calculate(specs, customsValueRub);
@@ -113,7 +103,7 @@ public class CalculationFacade {
         );
 
         // 8. Итоговая стоимость
-        BigDecimal totalCostRub = carWithOptionsPriceRub.add(importCosts.getTotalImportCostRub());
+        BigDecimal totalCostRub = customsValueRub.add(importCosts.getTotalImportCostRub());
 
         CalculationResponse response = new CalculationResponse();
         response.setBaseCarPriceRub(baseCarPriceRub);
@@ -145,8 +135,7 @@ public class CalculationFacade {
     }
 
     private BigDecimal getSettingAsDecimal(String key) {
-        return importSettingRepository.findById(key)
-                .map(s -> new BigDecimal(s.value()))
+        return importSettingRepository.getByKey(key)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Настройка не найдена: " + key
                 ));

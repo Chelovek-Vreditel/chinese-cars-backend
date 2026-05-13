@@ -19,8 +19,8 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class CustomsDutyService {
 
+    public class CustomsDutyService {
     private final CustomsDutyRateRepository customsDutyRateRepository;
     private final ElectricVehicleDutyRateRepository electricVehicleDutyRateRepository;
     private final CurrencyConverter currencyConverter;

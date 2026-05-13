@@ -42,51 +42,28 @@ CREATE INDEX idx_customs_duty_valid ON customs_duty_rates(valid_from, valid_to);
 -- =============================================================================
 CREATE TABLE customs_fee_rates (
     id                      BIGSERIAL       PRIMARY KEY,
-    customs_value_from_rub  DECIMAL(12,2)   NOT NULL,
-    customs_value_to_rub    DECIMAL(12,2),
-    fee_rub                 DECIMAL(10,2)   NOT NULL,
-    valid_from              DATE            NOT NULL,
-    valid_to                DATE,
-    
-    CHECK (customs_value_to_rub IS NULL OR customs_value_to_rub >= customs_value_from_rub),
-    CHECK (valid_to IS NULL OR valid_to >= valid_from)
+    cost_rub_from           DECIMAL(10,2)   NOT NULL,
+    cost_rub_to             DECIMAL(10,2)   NOT NULL,
+    fee_rub                 DECIMAL(10,2)   NOT NULL
 );
-
-CREATE INDEX idx_customs_fee_valid ON customs_fee_rates(valid_from, valid_to);
 
 -- =============================================================================
 -- Справочник утилизационного сбора
 -- =============================================================================
 CREATE TABLE recycling_fee_rates (
     id                      BIGSERIAL       PRIMARY KEY,
-    base_rate_rub           DECIMAL(10,2)   NOT NULL,
-    age_category            VARCHAR(20)     NOT NULL CHECK (age_category IN ('NEW', 'USED')),
-    engine_volume_from_cc   INT,
-    engine_volume_to_cc     INT,
-    engine_power_from_kw    DECIMAL(6,2),
-    engine_power_to_kw      DECIMAL(6,2),
-    coefficient             DECIMAL(10,4)   NOT NULL,
-    is_preferential         BOOLEAN         NOT NULL DEFAULT FALSE,
-    valid_from              DATE            NOT NULL,
-    valid_to                DATE,
-    
-    CHECK (engine_volume_to_cc IS NULL OR engine_volume_to_cc >= engine_volume_from_cc),
-    CHECK (engine_power_to_kw IS NULL OR engine_power_to_kw >= engine_power_from_kw),
-    CHECK (valid_to IS NULL OR valid_to >= valid_from)
+    is_electrical           BOOLEAN         NOT NULL,
+    engine_volume_l_from    DECIMAL(4,2),
+    engine_volume_l_to      DECIMAL(4,2),
+    engine_power_hp_from    INT             NOT NULL,
+    engine_power_hp_to      INT             NOT NULL,
+    coef_less               DECIMAL(10,2)   NOT NULL,
+    coef_more               DECIMAL(10,2)   NOT NULL
 );
 
-CREATE INDEX idx_recycling_fee_age ON recycling_fee_rates(age_category);
-CREATE INDEX idx_recycling_fee_preferential ON recycling_fee_rates(is_preferential);
-CREATE INDEX idx_recycling_fee_valid ON recycling_fee_rates(valid_from, valid_to);
-
--- =============================================================================
--- Настройки импорта (доставка, страховка и т.д.)
--- =============================================================================
 CREATE TABLE import_settings (
-    key             VARCHAR(50)     PRIMARY KEY,
-    value           VARCHAR(255)    NOT NULL,
-    description     TEXT,
-    updated_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP
+    key                     TEXT            PRIMARY_KEY,
+    value                   DECIMAL(12,2)   NOT NULL
 );
 
 -- =============================================================================

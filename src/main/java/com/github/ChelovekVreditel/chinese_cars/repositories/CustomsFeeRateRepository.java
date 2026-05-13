@@ -1,7 +1,6 @@
 package com.github.ChelovekVreditel.chinese_cars.repositories;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.Optional;
 
 import com.github.ChelovekVreditel.chinese_cars.models.CustomsFeeRate;
@@ -15,14 +14,11 @@ public interface CustomsFeeRateRepository
 
     @Query("""
         SELECT * FROM customs_fee_rates
-        WHERE customs_value_from_rub <= :customsValueRub
-          AND (customs_value_to_rub IS NULL OR customs_value_to_rub >= :customsValueRub)
-          AND valid_from <= :date
-          AND (valid_to IS NULL OR valid_to >= :date)
+        WHERE cost_rub_from <= :customsValueRub
+          AND (cost_rub_to >= :customsValueRub)
         LIMIT 1
         """)
     Optional<CustomsFeeRate> findRate(
-            @Param("customsValueRub") BigDecimal customsValueRub,
-            @Param("date") LocalDate date
+            @Param("customsValueRub") BigDecimal customsValueRub
     );
 }

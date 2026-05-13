@@ -9,6 +9,7 @@ import com.github.ChelovekVreditel.chinese_cars.enums.EngineType;
 import com.github.ChelovekVreditel.chinese_cars.exceptions.RateNotFoundException;
 import com.github.ChelovekVreditel.chinese_cars.models.ConfigurationTechnicalSpecs;
 import com.github.ChelovekVreditel.chinese_cars.models.RecyclingFeeRate;
+import com.github.ChelovekVreditel.chinese_cars.repositories.ImportSettingRepository;
 import com.github.ChelovekVreditel.chinese_cars.repositories.RecyclingFeeRateRepository;
 
 import org.springframework.stereotype.Service;
@@ -20,54 +21,49 @@ import lombok.RequiredArgsConstructor;
 public class RecyclingFeeService {
 
     private final RecyclingFeeRateRepository recyclingFeeRateRepository;
+    private final ImportSettingRepository importSettingRepository;
 
     public BigDecimal calculate(ConfigurationTechnicalSpecs specs) {
-        boolean isPreferential = isPreferentialApplicable(specs);
-        AgeCategory ageCategory = resolveAgeCategory(specs.getManufactureYear());
-
-        // Для электромобилей объём не учитывается — передаём 0
-        int engineVolumeCc = specs.getEngineType() == EngineType.ELECTRIC
-                ? 0
-                : specs.getEngineVolumeCc();
-
-        RecyclingFeeRate rate = recyclingFeeRateRepository.findRate(
-                ageCategory.name(),
-                isPreferential,
-                engineVolumeCc,
-                specs.getEnginePowerKw(),
-                LocalDate.now()
-        ).orElseThrow(() -> new RateNotFoundException("Ставка утилизационного сбора не найдена"));
-
-        return rate.baseRateRub()
-                .multiply(rate.coefficient())
-                .setScale(2, RoundingMode.HALF_UP);
-    }
-
-    // Льгота: мощность ≤ 160 л.с. И объём ≤ 3000 куб.см (для электро — только мощность)
-    // private boolean isPreferentialApplicable(ConfigurationTechnicalSpecs specs) {
-    //     boolean powerOk = specs.getEnginePowerHp() <= 160;
-    //
-    //     if (specs.getEngineType() == EngineType.ELECTRIC) {
-    //         return powerOk;
-    //     }
-    //     return powerOk && specs.getEngineVolumeCc() <= 3000;
-    // }
-
-    private static final BigDecimal PREFERENTIAL_POWER_LIMIT_KW = new BigDecimal("117.7");
-
-    private boolean isPreferentialApplicable(ConfigurationTechnicalSpecs specs) {
-        boolean powerOk = specs.getEnginePowerKw()
-            .compareTo(PREFERENTIAL_POWER_LIMIT_KW) <= 0;
-
-        if (specs.getEngineType() == EngineType.ELECTRIC) {
-            return powerOk;
+        BigDecimal baseRate = importSettingRepository.getByKey("recycling_base_rate")
+            .orElseThrow(() -> new RateNotFoundException("Не найдена базовая ставка для утилизационного сбора."));
+        Boolean moreThreeYears = isMoreThanThreeYears(specs.getManufactureYear());
+        Boolean isElectrical;
+        if (specs.getEngineType().equals(EngineType.ELECTRIC)) {
+            isElectrical = true;
+            BigDecimal powerLimit = importSettingRepository.getByKey("electric_preferential_engine_power")
+                .orElseThrow(() -> new RateNotFoundException("Не найдена максимальная мощность электромотора для льготной ставки."));
+            if (specs.getEnginePowerKw().compareTo(powerLimit) <= 0) {
+                String key = moreThreeYears ? "electric_preferential_coef_more" : "electric_preferential_coef_less";
+                BigDecimal coef = importSettingRepository.getByKey(key)
+                    .orElseThrow(() -> new RateNotFoundException("Не найден коэффициент для льготного утильсбора электромобиля."));
+                return baseRate.multiply(coef).setScale(2, RoundingMode.HALF_UP);
+            }
         }
-        return powerOk && specs.getEngineVolumeCc() <= 3000;
+        else {
+            isElectrical = false;
+            BigDecimal powerLimit = importSettingRepository.getByKey("preferential_power_kw")
+                .orElseThrow(() -> new RateNotFoundException("Не найдена максимальная мощность ДВС для льготной ставки."));
+            Integer volumeLimit = importSettingRepository.getByKey("preferential_volume_cc")
+                .orElseThrow(() -> new RateNotFoundException("Не найден максимальный объём ДВС для льготной ставки.")).intValue();
+            if (specs.getEnginePowerKw().compareTo(powerLimit) <= 0 && specs.getEngineVolumeCc()<= volumeLimit) {
+                String key = moreThreeYears ? "preferential_coef_more" : "preferential_coef_less";
+                BigDecimal coef = importSettingRepository.getByKey(key)
+                    .orElseThrow(() -> new RateNotFoundException("Не найден коэффициент для льготного утильсбора автомобиля."));
+                return baseRate.multiply(coef).setScale(2, RoundingMode.HALF_UP);
+            }
+        }
+        BigDecimal engineVolumeL = BigDecimal.valueOf(specs.getEngineVolumeCc())
+            .divide(BigDecimal.valueOf(1000))
+            .setScale(2, RoundingMode.HALF_UP);
+        RecyclingFeeRate rate = recyclingFeeRateRepository.getRate(isElectrical, specs.getEnginePowerHp(), engineVolumeL)
+            .orElseThrow(() -> new RateNotFoundException("Не найден коэффициент для расчёта утильсбора."));
+
+        BigDecimal multiplier = moreThreeYears ? rate.coefMore() : rate.coefLess();
+        return baseRate.multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
     }
 
-    // NEW < 3 лет, USED ≥ 3 лет
-    private AgeCategory resolveAgeCategory(int manufactureYear) {
-        int age = LocalDate.now().getYear() - manufactureYear;
-        return age < 3 ? AgeCategory.NEW : AgeCategory.USED;
+    private Boolean isMoreThanThreeYears(int age) {
+        int pastAge = LocalDate.now().getYear() - age;
+        return pastAge >= 3 ? true : false;
     }
 }
