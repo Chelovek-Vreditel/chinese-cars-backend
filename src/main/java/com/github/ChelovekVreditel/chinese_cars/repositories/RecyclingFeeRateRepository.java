@@ -14,14 +14,21 @@ public interface RecyclingFeeRateRepository
 
     @Query("""
         SELECT * FROM recycling_fee_rates
-        WHERE is_electrical = :isElectrical AND
-              engine_power_hp_from <= :enginePowerHp AND engine_power_hp_to > :enginePowerHp AND
+        WHERE engine_power_hp_from <= :enginePowerHp AND engine_power_hp_to > :enginePowerHp AND
               engine_volume_l_from <= :engineVolumeL AND engine_volume_l_to > :engineVolumeL
         LIMIT 1
     """)
-    public Optional<RecyclingFeeRate> getRate(
-        @Param("isElectrical") Boolean isElectrical,
+    public Optional<RecyclingFeeRate> getRateNonElectrical(
         @Param("enginePowerHp") Integer enginePowerHp,
         @Param("engineVolumeL") BigDecimal engineVolumeL
+    );
+
+    @Query("""
+        SELECT * FROM recycling_fee_rates
+        WHERE engine_power_hp_from <= :enginePowerHp AND engine_power_hp_to > :enginePowerHp
+        LIMIT 1
+    """)
+    public Optional<RecyclingFeeRate> getRateElectrical(
+        @Param("enginePowerHp") Integer enginePowerHp
     );
 }

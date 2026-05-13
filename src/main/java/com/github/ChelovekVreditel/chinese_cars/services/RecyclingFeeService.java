@@ -55,8 +55,15 @@ public class RecyclingFeeService {
         BigDecimal engineVolumeL = BigDecimal.valueOf(specs.getEngineVolumeCc())
             .divide(BigDecimal.valueOf(1000))
             .setScale(2, RoundingMode.HALF_UP);
-        RecyclingFeeRate rate = recyclingFeeRateRepository.getRate(isElectrical, specs.getEnginePowerHp(), engineVolumeL)
-            .orElseThrow(() -> new RateNotFoundException("Не найден коэффициент для расчёта утильсбора."));
+        RecyclingFeeRate rate;
+
+        if (isElectrical) {
+            rate = recyclingFeeRateRepository.getRateElectrical(specs.getEnginePowerHp())
+                .orElseThrow(() -> new RateNotFoundException("Не найден коэффициент для расчёта утильсбора."));
+        } else {
+            rate = recyclingFeeRateRepository.getRateNonElectrical(specs.getEnginePowerHp(), engineVolumeL)
+                .orElseThrow(() -> new RateNotFoundException("Не найден коэффициент для расчёта утильсбора."));
+        }
 
         BigDecimal multiplier = moreThreeYears ? rate.coefMore() : rate.coefLess();
         return baseRate.multiply(multiplier).setScale(2, RoundingMode.HALF_UP);
