@@ -18,4 +18,12 @@ public interface CarConfigurationRepository extends CrudRepository<@NonNull CarC
                                                @Param("name") String originalName);
 
     public List<CarConfiguration> getCarConfigurationsByCarId(Long carId);
+
+    @Query("""
+        SELECT id FROM cars_configurations
+        WHERE car_id = :carId
+        ORDER BY id
+        LIMIT 1
+    """)
+    public Optional<Long> getFirstConfigurationIdByCarId(@Param("carId") Long carId);
 }

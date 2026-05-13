@@ -15,6 +15,7 @@ public class CarDto {
     private BigDecimal basePrice;
     private String description;
     private String sourceUrl;
+    private BigDecimal finalCost;
 
     public CarDto(Car car) {
         this.id = car.getId();
