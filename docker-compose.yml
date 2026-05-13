@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:18.3-alpine3.23
+    container_name: cars-postgres
+    environment:
+      POSTGRES_DB: chinese_cars_db
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: myuser
+    volumes:
+      - postgres_data:/var/lib/postgresql/data 
+    ports:
+      - "5432:5432"
+    networks:
+      - cars-network 
+    restart: unless-stopped
+
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: cars-rustfs
+    environment:
+      RUSTFS_ACCESS_KEY: myrustfsuser
+      RUSTFS_SECRET_KEY: myrustfsuser
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_SERVER_DOMAINS: "localhost:9000"
+    volumes:
+      - rustfs_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - cars-network
+    restart: unless-stopped
+
+  spring-app:
+    build: .
+    container_name: cars-spring
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/chinese_cars_db
+      DB_USER: myuser
+      DB_PASSWORD: myuser
+      RUSTFS_ENDPOINT: http://rustfs:9000
+      RUSTFS_ACCESS_KEY: myrustfsuser
+      RUSTFS_SECRET_KEY: myrustfsuser
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - rustfs
+    networks:
+      - cars-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  rustfs_data:
+
+networks:
+  app-network:
+    driver: bridge

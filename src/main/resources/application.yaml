@@ -2,9 +2,9 @@ spring:
   application:
     name: chinese-cars
   datasource:
-    url: jdbc:postgresql://localhost:5432/chinese_cars_db
-    username: postgres
-    password: postgres
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/chinese_cars_db}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
   profiles:
     active: mvp
@@ -12,15 +12,14 @@ spring:
     enabled: true
 
 rustfs:
-  endpoint: http://localhost:9000
-  access-key: rustfsadmin
-  secret-key: rustfsadmin
+  endpoint: ${RUSTFS_ENDPOINT:http://localhost:9000}
+  access-key: ${RUSTFS_ACCESS_KEY:rustfsadmin}
+  secret-key: ${RUSTFS_SECRET_KEY:rustfsadmin}
   bucket: car-images
   region: us-east-1
 
 logging:
   level:
-    # root: DEBUG
     org.springframework.jdbc.core.JdbcTemplate: DEBUG
     org.flywaydb: INFO
     me.paulschwarz.spring.dotenv: DEBUG
