@@ -155,5 +155,3 @@ INSERT INTO import_settings (key, value) VALUES
 -- =============================================================================
 COMMENT ON COLUMN customs_duty_rates.rate_percent IS 'Ставка в % от таможенной стоимости (только для новых авто до 3 лет)';
 COMMENT ON COLUMN customs_duty_rates.rate_eur_per_cc IS 'Ставка в евро за 1 куб.см объёма двигателя';
-COMMENT ON COLUMN recycling_fee_rates.coefficient IS 'Коэффициент К для формулы: УС = БазоваяСтавка × К';
-COMMENT ON COLUMN recycling_fee_rates.is_preferential IS 'TRUE = льготный тариф для физлиц при выполнении всех условий (мощность ≤ 160 л.с., объём ≤ 3000 куб.см, для личного пользования, 1 авто в год)';

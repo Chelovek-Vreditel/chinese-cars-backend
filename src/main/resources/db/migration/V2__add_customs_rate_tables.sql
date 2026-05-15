@@ -62,7 +62,7 @@ CREATE TABLE recycling_fee_rates (
 );
 
 CREATE TABLE import_settings (
-    key                     TEXT            PRIMARY_KEY,
+    key                     TEXT            PRIMARY KEY,
     value                   DECIMAL(12,2)   NOT NULL
 );
 
