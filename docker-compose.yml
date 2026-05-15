@@ -23,8 +23,9 @@ services:
       RUSTFS_ACCESS_KEY: myrustfsuser
       RUSTFS_SECRET_KEY: myrustfsuser
       RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
       RUSTFS_ADDRESS: ":9000"
-      RUSTFS_SERVER_DOMAINS: "localhost:9000"
+      RUSTFS_SERVER_DOMAINS: "rustfs"
     volumes:
       - rustfs_data:/data
     ports:
@@ -44,6 +45,8 @@ services:
       RUSTFS_ENDPOINT: http://rustfs:9000
       RUSTFS_ACCESS_KEY: myrustfsuser
       RUSTFS_SECRET_KEY: myrustfsuser
+      MYMEMORY_EMAIL_USE: true
+      MYMEMORY_EMAIL_NAME: fake@gmail.com
     ports:
       - "8080:8080"
     depends_on:
@@ -58,5 +61,5 @@ volumes:
   rustfs_data:
 
 networks:
-  app-network:
+  cars-network:
     driver: bridge
