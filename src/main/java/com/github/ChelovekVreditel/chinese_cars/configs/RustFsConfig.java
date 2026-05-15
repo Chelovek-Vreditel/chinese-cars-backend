@@ -10,6 +10,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
 
 @Configuration
 public class RustFsConfig {
@@ -36,7 +37,12 @@ public class RustFsConfig {
                     AwsBasicCredentials.create(accessKey, secretKey)
                 )
             )
-            .forcePathStyle(true)
+            .serviceConfiguration(
+                S3Configuration.builder()
+                    .pathStyleAccessEnabled(true)
+                    .checksumValidationEnabled(false)
+                    .build()
+            )
             .build();
     }
 }
