@@ -54,9 +54,6 @@ dependencies {
     testImplementation("org.mockito:mockito-junit-jupiter:5.23.0")
     testImplementation("com.squareup.okhttp3:mockwebserver:5.3.2")
     testImplementation("org.junit.jupiter:junit-jupiter:6.0.3")
-    // Environmental variables from .env file
-    implementation(platform("me.paulschwarz:spring-dotenv-bom:5.1.0"))
-    developmentOnly("me.paulschwarz:springboot4-dotenv")
     // XML parsing
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.5")
     runtimeOnly("com.sun.xml.bind:jaxb-impl:4.0.7")

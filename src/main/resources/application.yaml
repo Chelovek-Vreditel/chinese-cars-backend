@@ -35,5 +35,5 @@ external:
 
 mymemory:
   email:
-    use: ${MYMEMORY_EMAIL_USE}
-    name: ${MYMEMORY_EMAIL_NAME}
+    use: ${MYMEMORY_EMAIL_USE:false}
+    name: ${MYMEMORY_EMAIL_NAME:fake@gmail.com}
